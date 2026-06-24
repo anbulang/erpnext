@@ -1,0 +1,48 @@
+graph TD
+    subgraph "前端层"
+        A1[POS界面]
+        A2[Desk桌面UI]
+        A3[门户Portal]
+        A4[移动端App]
+    end
+    
+    subgraph "应用层"
+        B1[财务模块 Accounts]
+        B2[库存模块 Stock]
+        B3[销售模块 Selling]
+        B4[采购模块 Buying]
+        B5[制造模块 Manufacturing]
+        B6[项目模块 Projects]
+    end
+    
+    subgraph "框架层"
+        C1[Frappe Framework]
+        C2[控制器层 Controllers]
+        C3[API层]
+        C4[权限系统]
+        C5[工作流引擎]
+    end
+    
+    subgraph "数据层"
+        D1[(MariaDB主数据库)]
+        D2[(Redis缓存)]
+        D3[文件存储]
+    end
+    
+    A1 --> C1
+    A2 --> C1
+    A3 --> C1
+    A4 --> C3
+    
+    B1 --> C2
+    B2 --> C2
+    B3 --> C2
+    B4 --> C2
+    B5 --> C2
+    B6 --> C2
+    
+    C1 --> D1
+    C1 --> D2
+    C2 --> D1
+    C3 --> D1
+    C1 --> D3

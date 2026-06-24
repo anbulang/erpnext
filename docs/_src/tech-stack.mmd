@@ -1,0 +1,51 @@
+graph TD
+    subgraph 前端技术栈
+        FE1[Vue.js 3.x<br/>响应式UI框架]
+        FE2[Frappe UI<br/>组件库]
+        FE3[Desk<br/>后台管理界面]
+        FE4[POS界面<br/>触摸屏优化]
+    end
+    
+    subgraph 后端技术栈
+        BE1[Python 3.10+<br/>核心语言]
+        BE2[Frappe Framework<br/>应用框架]
+        BE3[ERPNext<br/>业务应用]
+        BE4[Werkzeug<br/>WSGI服务器]
+    end
+    
+    subgraph 数据存储
+        DB1[(MariaDB 10.6+<br/>关系数据库)]
+        DB2[(Redis<br/>缓存&队列)]
+        DB3[File Storage<br/>文件存储]
+    end
+    
+    subgraph 构建工具
+        BUILD1[Node.js 18+<br/>运行环境]
+        BUILD2[npm/yarn<br/>包管理]
+        BUILD3[Rollup<br/>打包工具]
+    end
+    
+    FE1 --> FE2
+    FE2 --> FE3
+    FE2 --> FE4
+    
+    FE3 --> BE2
+    FE4 --> BE2
+    
+    BE1 --> BE2
+    BE2 --> BE3
+    BE2 --> BE4
+    
+    BE2 --> DB1
+    BE2 --> DB2
+    BE2 --> DB3
+    
+    BUILD1 --> BUILD2
+    BUILD2 --> BUILD3
+    BUILD3 --> FE1
+    
+    style FE2 fill:#42b983
+    style BE2 fill:#3498db
+    style BE3 fill:#e74c3c
+    style DB1 fill:#f39c12
+    style DB2 fill:#e67e22

@@ -1,0 +1,36 @@
+flowchart TD
+    Start([客户询价]) --> Quotation[报价单 Quotation<br/>SellingController]
+    
+    Quotation --> QuotStatus{客户决策}
+    QuotStatus -->|接受| SalesOrder[销售订单 Sales Order<br/>确认订单]
+    QuotStatus -->|拒绝| Lost[标记为Lost]
+    
+    SalesOrder --> CheckStock{检查库存}
+    CheckStock -->|有货| SelectBatch[批次选择<br/>Batch Selection]
+    CheckStock -->|缺货| Manufacture[生产/采购]
+    
+    Manufacture --> SelectBatch
+    SelectBatch --> DeliveryNote[送货单 Delivery Note<br/>StockController]
+    
+    DeliveryNote --> MakeStockEntry[生成库存分录<br/>Stock Ledger Entry]
+    MakeStockEntry --> UpdateBin[更新Bin库存]
+    
+    UpdateBin --> SalesInvoice[销售发票 Sales Invoice<br/>AccountsController]
+    
+    SalesInvoice --> CheckCredit{检查账期<br/>Credit Terms}
+    CheckCredit -->|现金| ImmediatePayment[立即收款<br/>Payment Entry]
+    CheckCredit -->|账期| DeferPayment[应收账款<br/>Accounts Receivable]
+    
+    ImmediatePayment --> MakeGLEntry[生成总账分录<br/>GL Entry]
+    DeferPayment --> WaitPayment[等待付款]
+    WaitPayment --> LaterPayment[后续收款<br/>Payment Entry]
+    LaterPayment --> MakeGLEntry
+    
+    MakeGLEntry --> Complete([交易完成])
+    
+    style Quotation fill:#e1f5fe
+    style SalesOrder fill:#f3e5f5
+    style DeliveryNote fill:#fff9c4
+    style SalesInvoice fill:#c8e6c9
+    style ImmediatePayment fill:#ffccbc
+    style DeferPayment fill:#ffccbc

@@ -1,0 +1,21 @@
+graph TD
+    A[Document<br/>基础文档类<br/>生命周期管理] --> B[StatusUpdater<br/>状态更新器<br/>管理单据状态流转]
+    B --> C[TransactionBase<br/>交易基类<br/>posting_date/time处理]
+    C --> D[AccountsController<br/>财务控制器<br/>总账分录GL Entry]
+    D --> E[StockController<br/>库存控制器<br/>库存分录Stock Ledger]
+    E --> F[SellingController<br/>销售控制器<br/>销售业务逻辑]
+    E --> G[BuyingController<br/>采购控制器<br/>采购业务逻辑]
+    F --> H[POSInvoice<br/>POS单据<br/>POS特定功能]
+    F --> I[SalesInvoice<br/>销售发票<br/>标准销售]
+    F --> J[Quotation<br/>报价单<br/>销售机会]
+    
+    style A fill:#e1f5ff
+    style B fill:#fff4e6
+    style C fill:#f3e5f5
+    style D fill:#e8f5e9
+    style E fill:#fff9c4
+    style F fill:#ffebee
+    style G fill:#ffebee
+    style H fill:#fce4ec
+    style I fill:#fce4ec
+    style J fill:#fce4ec

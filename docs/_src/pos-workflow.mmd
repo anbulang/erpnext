@@ -1,0 +1,32 @@
+flowchart TD
+    Start([开始]) --> OpenPOS[POS Opening Entry<br/>开班]
+    OpenPOS --> ValidateProfile{验证POS Profile<br/>和收银员}
+    ValidateProfile -->|通过| SetStatus1[设置状态: Open]
+    ValidateProfile -->|失败| Error1[抛出异常]
+    
+    SetStatus1 --> CreateInvoice[创建POS Invoice<br/>POS单据]
+    CreateInvoice --> ScanItem[扫码/添加商品]
+    ScanItem --> ApplyPrice[应用价格规则]
+    ApplyPrice --> AddMoreItems{继续添加?}
+    AddMoreItems -->|是| ScanItem
+    AddMoreItems -->|否| Payment[选择支付方式]
+    
+    Payment --> ValidatePayment{验证支付金额}
+    ValidatePayment -->|不足| Payment
+    ValidatePayment -->|通过| Submit[提交单据 on_submit]
+    
+    Submit --> MakeLoyalty[创建积分分录<br/>make_loyalty_point_entry]
+    MakeLoyalty --> MakeGL[生成总账分录<br/>GL Entry]
+    MakeGL --> MakeStock[生成库存分录<br/>Stock Ledger Entry]
+    MakeStock --> UpdateBin[更新库存Bin]
+    UpdateBin --> InvoiceComplete([单据完成])
+    
+    InvoiceComplete --> MoreInvoices{继续开单?}
+    MoreInvoices -->|是| CreateInvoice
+    MoreInvoices -->|否| ClosePOS[POS Closing Entry<br/>交班]
+    
+    ClosePOS --> ReconcilePayment[核对支付金额]
+    ReconcilePayment --> ValidateClosing{验证交班数据}
+    ValidateClosing -->|通过| SetStatus2[设置Opening状态: Closed]
+    ValidateClosing -->|失败| Error2[抛出异常]
+    SetStatus2 --> End([结束])

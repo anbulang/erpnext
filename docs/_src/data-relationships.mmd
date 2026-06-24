@@ -1,0 +1,30 @@
+graph TD
+    Company[公司 Company] -->|拥有| Warehouse[仓库 Warehouse]
+    Company -->|设置| POSProfile[POS配置 POS Profile]
+    
+    Warehouse -->|存储| Item[商品 Item]
+    Warehouse -->|库存数量| Bin[库位 Bin]
+    
+    Item -->|定价| ItemPrice[商品价格 Item Price]
+    Item -->|批次管理| Batch[批次 Batch]
+    Item -->|所属| ItemGroup[商品分组 Item Group]
+    
+    Customer[客户 Customer] -->|关联| CustomerGroup[客户分组]
+    Customer -->|参与| LoyaltyProgram[积分计划 Loyalty Program]
+    
+    POSProfile -->|配置| POSInvoice[POS单据 POS Invoice]
+    Customer -->|购买| POSInvoice
+    Item -->|销售项| POSInvoice
+    
+    POSInvoice -->|生成| StockLedger[库存分录<br/>Stock Ledger Entry]
+    POSInvoice -->|生成| GLEntry[总账分录<br/>GL Entry]
+    POSInvoice -->|支付| PaymentEntry[付款分录<br/>Payment Entry]
+    POSInvoice -->|积分| LoyaltyPoint[积分分录<br/>Loyalty Point Entry]
+    
+    StockLedger -->|更新| Bin
+    GLEntry -->|记入| Account[会计科目 Account]
+    
+    style POSInvoice fill:#ffcdd2
+    style StockLedger fill:#c8e6c9
+    style GLEntry fill:#bbdefb
+    style PaymentEntry fill:#fff9c4
