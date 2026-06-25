@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERPNext 整体架构图</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #020617;
+      min-height: 100vh;
+      padding: 2rem;
+      color: white;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      background: #22d3ee;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.875rem;
+      margin-left: 1.75rem;
+    }
+
+    .diagram-container {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 1rem;
+      border: 1px solid #1e293b;
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+
+    svg {
+      width: 100%;
+      min-width: 1100px;
+      display: block;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 0.75rem;
+      border: 1px solid #1e293b;
+      padding: 1.25rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .card-dot.cyan { background: #22d3ee; }
+    .card-dot.emerald { background: #34d399; }
+    .card-dot.violet { background: #a78bfa; }
+    .card-dot.amber { background: #fbbf24; }
+
+    .card h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .card ul {
+      list-style: none;
+      color: #94a3b8;
+      font-size: 0.75rem;
+    }
+
+    .card li {
+      margin-bottom: 0.375rem;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #475569;
+      font-size: 0.75rem;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: auto;
+      flex-shrink: 0;
+      align-items: center;
+    }
+    .toolbar-toggle {
+      background: transparent;
+      border: none;
+      color: #475569;
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      transition: color 0.2s, background 0.2s;
+    }
+    .toolbar-toggle:hover { color: #94a3b8; background: rgba(30, 41, 59, 0.5); }
+    .toolbar-actions {
+      display: none;
+      gap: 0.5rem;
+    }
+    .toolbar.expanded .toolbar-actions { display: flex; }
+    .toolbar-actions button {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.375rem;
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .toolbar-actions button:hover {
+      background: rgba(51, 65, 85, 0.8);
+      color: white;
+      border-color: #475569;
+    }
+
+    @media print {
+      body { background: #020617; padding: 1rem; }
+      .toolbar { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="report-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>ERPNext 整体架构</h1>
+        <div class="toolbar">
+          <div class="toolbar-actions">
+            <button onclick="copyAsImage(this)">📋 Copy</button>
+            <button onclick="downloadPNG(this)">🖼️ PNG</button>
+            <button onclick="downloadPDF(this)">📄 PDF</button>
+          </div>
+          <button class="toolbar-toggle" onclick="this.parentElement.classList.toggle('expanded')" title="Export options" aria-label="Export options">⋯</button>
+        </div>
+      </div>
+      <p class="subtitle">4层技术架构 · 前端 → 应用 → 框架 → 数据</p>
+    </div>
+
+    <!-- Main Diagram -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 1200 780">
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Layer Labels on Left -->
+        <text x="20" y="105" fill="#22d3ee" font-size="11" font-weight="600">前端层</text>
+        <text x="20" y="265" fill="#34d399" font-size="11" font-weight="600">应用层</text>
+        <text x="20" y="465" fill="#fbbf24" font-size="11" font-weight="600">框架层</text>
+        <text x="20" y="665" fill="#a78bfa" font-size="11" font-weight="600">数据层</text>
+
+        <!-- ======= LAYER 1: Frontend (Cyan) ======= -->
+
+        <!-- POS UI -->
+        <rect x="100" y="70" width="140" height="70" rx="6" fill="#0f172a"/>
+        <rect x="100" y="70" width="140" height="70" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="170" y="95" fill="white" font-size="12" font-weight="600" text-anchor="middle">POS 收银界面</text>
+        <text x="170" y="112" fill="#94a3b8" font-size="9" text-anchor="middle">Vue.js + Frappe UI</text>
+        <text x="170" y="126" fill="#22d3ee" font-size="8" text-anchor="middle">触摸屏优化</text>
+
+        <!-- Desk UI -->
+        <rect x="280" y="70" width="140" height="70" rx="6" fill="#0f172a"/>
+        <rect x="280" y="70" width="140" height="70" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="350" y="95" fill="white" font-size="12" font-weight="600" text-anchor="middle">Desk 后台管理</text>
+        <text x="350" y="112" fill="#94a3b8" font-size="9" text-anchor="middle">响应式后台界面</text>
+        <text x="350" y="126" fill="#22d3ee" font-size="8" text-anchor="middle">完整功能</text>
+
+        <!-- Portal -->
+        <rect x="460" y="70" width="140" height="70" rx="6" fill="#0f172a"/>
+        <rect x="460" y="70" width="140" height="70" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="530" y="95" fill="white" font-size="12" font-weight="600" text-anchor="middle">门户网站</text>
+        <text x="530" y="112" fill="#94a3b8" font-size="9" text-anchor="middle">Customer Portal</text>
+        <text x="530" y="126" fill="#22d3ee" font-size="8" text-anchor="middle">客户自助服务</text>
+
+        <!-- Mobile App -->
+        <rect x="640" y="70" width="140" height="70" rx="6" fill="#0f172a"/>
+        <rect x="640" y="70" width="140" height="70" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="710" y="95" fill="white" font-size="12" font-weight="600" text-anchor="middle">移动应用</text>
+        <text x="710" y="112" fill="#94a3b8" font-size="9" text-anchor="middle">iOS / Android</text>
+        <text x="710" y="126" fill="#22d3ee" font-size="8" text-anchor="middle">移动办公</text>
+
+        <!-- ======= LAYER 2: Application (Emerald) ======= -->
+
+        <!-- ERPNext Application Container -->
+        <rect x="100" y="200" width="680" height="120" rx="8" fill="rgba(6, 78, 59, 0.15)" stroke="#34d399" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="110" y="218" fill="#34d399" font-size="10" font-weight="600">ERPNext Application (21个业务模块)</text>
+
+        <!-- POS Module -->
+        <rect x="120" y="230" width="100" height="70" rx="6" fill="#0f172a"/>
+        <rect x="120" y="230" width="100" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="170" y="252" fill="white" font-size="11" font-weight="600" text-anchor="middle">POS</text>
+        <text x="170" y="267" fill="#94a3b8" font-size="8" text-anchor="middle">• POS Invoice</text>
+        <text x="170" y="279" fill="#94a3b8" font-size="8" text-anchor="middle">• Opening/Closing</text>
+        <text x="170" y="291" fill="#94a3b8" font-size="8" text-anchor="middle">• POS Profile</text>
+
+        <!-- Stock Module -->
+        <rect x="240" y="230" width="100" height="70" rx="6" fill="#0f172a"/>
+        <rect x="240" y="230" width="100" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="290" y="252" fill="white" font-size="11" font-weight="600" text-anchor="middle">库存</text>
+        <text x="290" y="267" fill="#94a3b8" font-size="8" text-anchor="middle">• Item / Batch</text>
+        <text x="290" y="279" fill="#94a3b8" font-size="8" text-anchor="middle">• Stock Entry</text>
+        <text x="290" y="291" fill="#94a3b8" font-size="8" text-anchor="middle">• Warehouse</text>
+
+        <!-- Selling Module -->
+        <rect x="360" y="230" width="100" height="70" rx="6" fill="#0f172a"/>
+        <rect x="360" y="230" width="100" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="410" y="252" fill="white" font-size="11" font-weight="600" text-anchor="middle">销售</text>
+        <text x="410" y="267" fill="#94a3b8" font-size="8" text-anchor="middle">• Sales Order</text>
+        <text x="410" y="279" fill="#94a3b8" font-size="8" text-anchor="middle">• Delivery Note</text>
+        <text x="410" y="291" fill="#94a3b8" font-size="8" text-anchor="middle">• Customer</text>
+
+        <!-- Accounts Module -->
+        <rect x="480" y="230" width="100" height="70" rx="6" fill="#0f172a"/>
+        <rect x="480" y="230" width="100" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="530" y="252" fill="white" font-size="11" font-weight="600" text-anchor="middle">财务</text>
+        <text x="530" y="267" fill="#94a3b8" font-size="8" text-anchor="middle">• GL Entry</text>
+        <text x="530" y="279" fill="#94a3b8" font-size="8" text-anchor="middle">• Payment Entry</text>
+        <text x="530" y="291" fill="#94a3b8" font-size="8" text-anchor="middle">• Journal Entry</text>
+
+        <!-- More Modules -->
+        <rect x="600" y="230" width="160" height="70" rx="6" fill="#0f172a"/>
+        <rect x="600" y="230" width="160" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="680" y="252" fill="white" font-size="11" font-weight="600" text-anchor="middle">更多模块</text>
+        <text x="680" y="267" fill="#94a3b8" font-size="8" text-anchor="middle">采购 · 制造 · 项目 · CRM</text>
+        <text x="680" y="279" fill="#94a3b8" font-size="8" text-anchor="middle">人力资源 · 资产 · 支持</text>
+        <text x="680" y="291" fill="#94a3b8" font-size="8" text-anchor="middle">17+ 其他业务模块</text>
+
+        <!-- ======= LAYER 3: Framework (Amber) ======= -->
+
+        <!-- Frappe Framework Container -->
+        <rect x="100" y="380" width="680" height="140" rx="8" fill="rgba(120, 53, 15, 0.15)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="110" y="398" fill="#fbbf24" font-size="10" font-weight="600">Frappe Framework (Python全栈框架)</text>
+
+        <!-- ORM/DocType -->
+        <rect x="120" y="410" width="130" height="90" rx="6" fill="#0f172a"/>
+        <rect x="120" y="410" width="130" height="90" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="185" y="432" fill="white" font-size="11" font-weight="600" text-anchor="middle">ORM / DocType</text>
+        <text x="185" y="447" fill="#94a3b8" font-size="8" text-anchor="middle">• 元数据驱动</text>
+        <text x="185" y="459" fill="#94a3b8" font-size="8" text-anchor="middle">• 文档生命周期</text>
+        <text x="185" y="471" fill="#94a3b8" font-size="8" text-anchor="middle">• before_save/on_submit</text>
+        <text x="185" y="487" fill="#fbbf24" font-size="7" text-anchor="middle">521 DocTypes in ERPNext</text>
+
+        <!-- REST API -->
+        <rect x="270" y="410" width="130" height="90" rx="6" fill="#0f172a"/>
+        <rect x="270" y="410" width="130" height="90" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="335" y="432" fill="white" font-size="11" font-weight="600" text-anchor="middle">REST API</text>
+        <text x="335" y="447" fill="#94a3b8" font-size="8" text-anchor="middle">• /api/resource</text>
+        <text x="335" y="459" fill="#94a3b8" font-size="8" text-anchor="middle">• /api/method</text>
+        <text x="335" y="471" fill="#94a3b8" font-size="8" text-anchor="middle">• Token/Session Auth</text>
+        <text x="335" y="487" fill="#fbbf24" font-size="7" text-anchor="middle">Auto-generated APIs</text>
+
+        <!-- Permissions -->
+        <rect x="420" y="410" width="130" height="90" rx="6" fill="#0f172a"/>
+        <rect x="420" y="410" width="130" height="90" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="485" y="432" fill="white" font-size="11" font-weight="600" text-anchor="middle">权限系统</text>
+        <text x="485" y="447" fill="#94a3b8" font-size="8" text-anchor="middle">• Role-Based</text>
+        <text x="485" y="459" fill="#94a3b8" font-size="8" text-anchor="middle">• User/Role/DocPerm</text>
+        <text x="485" y="471" fill="#94a3b8" font-size="8" text-anchor="middle">• has_permission()</text>
+        <text x="485" y="487" fill="#fbbf24" font-size="7" text-anchor="middle">Granular control</text>
+
+        <!-- Background Jobs -->
+        <rect x="570" y="410" width="190" height="90" rx="6" fill="#0f172a"/>
+        <rect x="570" y="410" width="190" height="90" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="665" y="432" fill="white" font-size="11" font-weight="600" text-anchor="middle">后台任务</text>
+        <text x="665" y="447" fill="#94a3b8" font-size="8" text-anchor="middle">• Scheduler (cron-like)</text>
+        <text x="665" y="459" fill="#94a3b8" font-size="8" text-anchor="middle">• Worker Queue (RQ)</text>
+        <text x="665" y="471" fill="#94a3b8" font-size="8" text-anchor="middle">• Email Queue</text>
+        <text x="665" y="487" fill="#fbbf24" font-size="7" text-anchor="middle">异步处理</text>
+
+        <!-- ======= LAYER 4: Data (Violet) ======= -->
+
+        <!-- MariaDB -->
+        <rect x="100" y="590" width="250" height="100" rx="6" fill="#0f172a"/>
+        <rect x="100" y="590" width="250" height="100" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="225" y="615" fill="white" font-size="12" font-weight="600" text-anchor="middle">MariaDB</text>
+        <text x="225" y="635" fill="#94a3b8" font-size="9" text-anchor="middle">主数据存储</text>
+        <text x="225" y="650" fill="#94a3b8" font-size="8" text-anchor="middle">• 业务数据 (tabPOS Invoice, tabItem...)</text>
+        <text x="225" y="662" fill="#94a3b8" font-size="8" text-anchor="middle">• 元数据 (tabDocType, tabDocField)</text>
+        <text x="225" y="678" fill="#a78bfa" font-size="7" text-anchor="middle">InnoDB · 事务支持</text>
+
+        <!-- Redis -->
+        <rect x="380" y="590" width="200" height="100" rx="6" fill="#0f172a"/>
+        <rect x="380" y="590" width="200" height="100" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="480" y="615" fill="white" font-size="12" font-weight="600" text-anchor="middle">Redis</text>
+        <text x="480" y="635" fill="#94a3b8" font-size="9" text-anchor="middle">缓存 + 队列</text>
+        <text x="480" y="650" fill="#94a3b8" font-size="8" text-anchor="middle">• Session缓存</text>
+        <text x="480" y="662" fill="#94a3b8" font-size="8" text-anchor="middle">• RQ任务队列</text>
+        <text x="480" y="678" fill="#a78bfa" font-size="7" text-anchor="middle">高性能KV存储</text>
+
+        <!-- File Storage -->
+        <rect x="610" y="590" width="170" height="100" rx="6" fill="#0f172a"/>
+        <rect x="610" y="590" width="170" height="100" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="695" y="615" fill="white" font-size="12" font-weight="600" text-anchor="middle">文件存储</text>
+        <text x="695" y="635" fill="#94a3b8" font-size="9" text-anchor="middle">附件 + 媒体</text>
+        <text x="695" y="650" fill="#94a3b8" font-size="8" text-anchor="middle">• 本地文件系统</text>
+        <text x="695" y="662" fill="#94a3b8" font-size="8" text-anchor="middle">• S3兼容存储</text>
+        <text x="695" y="678" fill="#a78bfa" font-size="7" text-anchor="middle">灵活配置</text>
+
+        <!-- ======= Arrows ======= -->
+
+        <!-- Frontend to Application -->
+        <line x1="170" y1="140" x2="170" y2="228" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="350" y1="140" x2="290" y2="228" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="530" y1="140" x2="410" y2="228" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="710" y1="140" x2="530" y2="228" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+        <!-- Application to Framework -->
+        <line x1="170" y1="300" x2="185" y2="408" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="290" y1="300" x2="335" y2="408" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="410" y1="300" x2="485" y2="408" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="530" y1="300" x2="665" y2="408" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+        <!-- Framework to Data -->
+        <line x1="185" y1="500" x2="225" y2="588" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="335" y1="500" x2="480" y2="588" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="665" y1="500" x2="695" y2="588" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+        <!-- Legend -->
+        <text x="950" y="90" fill="white" font-size="10" font-weight="600">图例</text>
+
+        <rect x="950" y="102" width="16" height="10" rx="2" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="972" y="110" fill="#94a3b8" font-size="8">前端层 Frontend</text>
+
+        <rect x="950" y="118" width="16" height="10" rx="2" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="972" y="126" fill="#94a3b8" font-size="8">应用层 Application</text>
+
+        <rect x="950" y="134" width="16" height="10" rx="2" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="972" y="142" fill="#94a3b8" font-size="8">框架层 Framework</text>
+
+        <rect x="950" y="150" width="16" height="10" rx="2" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="972" y="158" fill="#94a3b8" font-size="8">数据层 Data</text>
+      </svg>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot cyan"></div>
+          <h3>前端技术栈</h3>
+        </div>
+        <ul>
+          <li>• Vue.js 3.x - 响应式UI框架</li>
+          <li>• Frappe UI - 组件库</li>
+          <li>• POS界面 - 触摸屏优化的收银系统</li>
+          <li>• Desk - 功能完整的后台管理系统</li>
+          <li>• Portal - 客户门户和自助服务</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot emerald"></div>
+          <h3>ERPNext 应用层</h3>
+        </div>
+        <ul>
+          <li>• 21个业务模块 - POS · 库存 · 销售 · 财务 · 采购</li>
+          <li>• 521个DocType - 完整的业务对象定义</li>
+          <li>• 控制器继承 - StockController → SellingController</li>
+          <li>• 自动分录生成 - 库存分录 + 会计分录</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot amber"></div>
+          <h3>Frappe 框架层</h3>
+        </div>
+        <ul>
+          <li>• Python全栈框架 - 元数据驱动的ORM</li>
+          <li>• 自动REST API - /api/resource和/api/method</li>
+          <li>• 权限系统 - Role-Based访问控制</li>
+          <li>• 后台任务 - Scheduler + RQ Worker Queue</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer">
+      ERPNext v15 · Architecture Diagram · Generated 2026-06-25
+    </p>
+  </div>
+
+  <script>
+    async function copyAsImage(btn) {
+      const orig = btn.textContent;
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        btn.textContent = '✓ Copied!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+
+    async function downloadPNG(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '⏳ ...';
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const link = document.createElement('a');
+        link.download = 'erpnext-architecture.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        btn.textContent = '✓ Done!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+
+    async function downloadPDF(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '⏳ ...';
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+        const pdf = new jsPDF({ orientation, unit: 'px', format: [canvas.width, canvas.height], hotfixes: ['px_scaling'] });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('erpnext-architecture.pdf');
+        btn.textContent = '✓ Done!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+  </script>
+</body>
+</html>

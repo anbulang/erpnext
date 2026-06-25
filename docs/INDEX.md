@@ -2,7 +2,21 @@
 
 > 快速导航到所有架构图和流程图
 
-## 📋 完整图表列表
+## ⭐ 新版专业图表 (推荐)
+
+**深色主题 · 交互式 · 一键导出 PNG/PDF**
+
+| 图表 | 描述 | 文件 |
+|------|------|------|
+| **整体架构** | 4层技术架构：前端→应用→框架→数据 | [HTML](diagrams/01-overall-architecture.html) 🔥 |
+| **控制器继承** | Document→StatusUpdater→...→POSInvoice | [HTML](diagrams/02-controller-inheritance.html) 🔥 |
+| **POS收银流程** | 开班→收银→库存会计分录→结班 | [HTML](diagrams/03-pos-workflow.html) 🔥 |
+
+> 💡 **使用方法**: 在浏览器中打开 HTML 文件，点击右上角 `⋯` 可导出为 PNG 或 PDF
+
+---
+
+## 📋 原版 Mermaid 图表
 
 ### 🏗️ 架构图 (Architecture)
 
@@ -30,12 +44,12 @@
 ## 🎯 按场景查看
 
 ### 我是新手，想理解 ERPNext 整体架构
-1. 先看 [整体架构](architecture/overall-architecture.svg) - 了解 4 层模型
+1. 先看 [整体架构](diagrams/01-overall-architecture.html) 🔥 - 了解 4 层模型
 2. 再看 [技术栈](architecture/tech-stack.svg) - 了解用了哪些技术
-3. 然后看 [控制器继承](architecture/controller-inheritance.svg) - 理解代码组织方式
+3. 然后看 [控制器继承](diagrams/02-controller-inheritance.html) 🔥 - 理解代码组织方式
 
 ### 我要实现零售门店POS系统
-1. 看 [POS收银流程](workflows/pos-workflow.svg) - 理解完整收银流程
+1. 看 [POS收银流程](diagrams/03-pos-workflow.html) 🔥 - 理解完整收银流程
 2. 看 [DocType关系](data-model/data-relationships.svg) - 理解数据模型
 3. 参考 [门店系统学习指南](../ERPNEXT_门店系统学习指南.md)
 
